@@ -1,0 +1,166 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5c35423f-acdd-4b9a-b0e8-3463d27b900d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "sIEPMBOeY2NrNlwE",
+          "mode": "list",
+          "cachedResultName": "Registro_Devoluciones",
+          "cachedResultUrl": "/projects/AO4rk1ABfxKJA0u3/datatables/sIEPMBOeY2NrNlwE"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "de3f3421-2953-4fd5-8d81-b682dd900316",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "field": "id_solicitud"
+            },
+            {
+              "aggregation": "sum",
+              "field": "monto_num"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "ruta",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "ceb25db9-d615-4c9f-9823-ed7f0f983bbc",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e2d8652-fd82-4012-a7eb-d41ca429d1f4",
+              "name": "monto_num",
+              "value": "={{ Number($json.monto) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "29900dbf-54e7-48b2-b4ed-18cb97ee65f2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const datos = $input.all().map(item => item.json);\n\nif (datos.length === 0) {\n  return [\n    {\n      json: {\n        resumen: `RESUMEN DIARIO DE DEVOLUCIONES\n\nNo existen solicitudes nuevas para este período.\n\nTotal de solicitudes: 0\nMonto total procesado: $0\n\nNo se procesaron nuevos registros porque no existen solicitudes en la tabla.`,\n        total_solicitudes: 0,\n        monto_total: 0,\n        tasa_aprobacion_automatica: 0\n      }\n    }\n  ];\n}\n\nconst totalSolicitudes = datos.reduce(\n  (sum, r) => sum + Number(r.count_id_solicitud || 0),\n  0\n);\n\nconst montoTotal = datos.reduce(\n  (sum, r) => sum + Number(r.sum_monto_num || 0),\n  0\n);\n\nconst aprobadas = datos.find(\n  r => r.ruta === 'APROBACION'\n)?.count_id_solicitud || 0;\n\nconst tasaAprobacion = totalSolicitudes > 0\n  ? (Number(aprobadas) / totalSolicitudes * 100).toFixed(2)\n  : '0.00';\n\nlet resumen = `RESUMEN DIARIO DE DEVOLUCIONES\n\nTotal de solicitudes: ${totalSolicitudes}\nMonto total procesado: $${montoTotal.toLocaleString('es-CL')}\n\nDETALLE POR RUTA:\n`;\n\nfor (const r of datos) {\n  resumen += `- ${r.ruta}: ${r.count_id_solicitud} solicitudes | $${Number(r.sum_monto_num).toLocaleString('es-CL')}\n`;\n}\n\nresumen += `\nTasa de aprobación automática: ${tasaAprobacion}%\n\nFrecuencia de ejecución: una vez al día a las 20:00.\nSi no existen solicitudes nuevas, se informará que no hubo solicitudes para el período.`;\n\nreturn [\n  {\n    json: {\n      resumen,\n      total_solicitudes: totalSolicitudes,\n      monto_total: montoTotal,\n      tasa_aprobacion_automatica: Number(tasaAprobacion)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        0
+      ],
+      "id": "47a528bc-d65a-47b4-86dd-6a278d307e93",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7f161d6d-21fd-4a95-8c67-e2a7379a9f7f",
+  "meta": {
+    "instanceId": "5d1807531c3c1a80fe6caf3818d95c2adf764ada2cd08cfa3e525f26e01d531c"
+  },
+  "nodeGroups": [],
+  "id": "guFL7TJakiAlsdJ8",
+  "tags": []
+}

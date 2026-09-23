@@ -1,0 +1,60 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "616ab9a4-9423-469c-bdb8-446c842e0136",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://avalenzuelar.app.n8n.cloud/webhook/lab3",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "90ec4c5e-3dc1-40ad-94b4-bafb1c8674e0",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7b535177-345d-4478-bd5f-4c82fe0cafb9",
+  "meta": {
+    "instanceId": "5d1807531c3c1a80fe6caf3818d95c2adf764ada2cd08cfa3e525f26e01d531c"
+  },
+  "nodeGroups": [],
+  "id": "LKLcBrcta2u1XlYH",
+  "tags": []
+}
